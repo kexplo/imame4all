@@ -91,7 +91,7 @@ final class NotificationHelper
                 Intent notificationIntent = new Intent(ctx, MAME4droid.class);
                 PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
 
-                notification.setLatestEventInfo(ctx, contentTitle, contentText, contentIntent);
+                //notification.setLatestEventInfo(ctx, contentTitle, contentText, contentIntent);
                 notificationManager.notify(1, notification);
         }
        
