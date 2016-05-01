@@ -78,7 +78,7 @@ import android.widget.Toast;
 
 import com.seleuco.mame4droid.Emulator;
 import com.seleuco.mame4droid.MAME4droid;
-import com.seleuco.mame4droid.R;
+import com.kexplo.mame4droid.R;
 import com.seleuco.mame4droid.WebHelpActivity;
 import com.seleuco.mame4droid.input.ControlCustomizer;
 import com.seleuco.mame4droid.input.InputHandler;

@@ -72,7 +72,7 @@ import com.seleuco.mame4droid.input.InputHandlerExt;
 import com.seleuco.mame4droid.input.InputHandlerFactory;
 import com.seleuco.mame4droid.views.IEmuView;
 import com.seleuco.mame4droid.views.InputView;
-import com.seleuco.mame4droid.R;
+import com.kexplo.mame4droid.R;
 
 final class NotificationHelper
 {

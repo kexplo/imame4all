@@ -51,6 +51,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import com.kexplo.mame4droid.R;
 
 public class WebHelpActivity extends Activity {
 	

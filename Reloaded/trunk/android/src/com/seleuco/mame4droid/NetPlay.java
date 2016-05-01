@@ -67,7 +67,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.seleuco.mame4droid.helpers.PrefsHelper;
-import com.seleuco.mame4droid.R;
+import com.kexplo.mame4droid.R;
 
 
 public class NetPlay {

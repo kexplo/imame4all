@@ -44,7 +44,7 @@
 
 package com.seleuco.mame4droid.prefs;
 
-import com.seleuco.mame4droid.R;
+import com.kexplo.mame4droid.R;
 
 import android.content.Context;
 import android.content.res.TypedArray;

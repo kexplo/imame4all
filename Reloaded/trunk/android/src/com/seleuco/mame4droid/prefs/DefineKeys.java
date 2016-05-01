@@ -57,7 +57,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.seleuco.mame4droid.R;
+import com.kexplo.mame4droid.R;
 import com.seleuco.mame4droid.input.InputHandlerExt;
 
 public class DefineKeys extends ListActivity {
