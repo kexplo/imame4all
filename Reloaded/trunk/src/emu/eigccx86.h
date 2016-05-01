@@ -96,7 +96,7 @@ _mul_32x32_hi(INT32 a, INT32 b)
         , [temp]   "=a"  (temp)     /* This is effectively a clobber */
         : [a]      "a"  (a)        /* 'a' should be in eax on entry */
         , [b]      "rm"  (b)        /* 'b' can be memory or register */
-		: "%cc"						/* Clobbers condition codes */
+		: "cc"						/* Clobbers condition codes */
 	);
 
 	return result;
@@ -121,7 +121,7 @@ _mulu_32x32_hi(UINT32 a, UINT32 b)
         , [temp]   "=a"  (temp)     /* This is effectively a clobber */
         : [a]      "a"   (a)        /* 'a' should be in eax on entry */
         , [b]      "rm"  (b)        /* 'b' can be memory or register */
-		: "%cc"						/* Clobbers condition codes */
+		: "cc"						/* Clobbers condition codes */
 	);
 
 	return result;
@@ -458,7 +458,7 @@ _count_leading_zeros(UINT32 value)
 		"1: xorl  $31, %[result]      ;"
 		: [result] "=r" (result)	/* result can be in any register */
 		: [value]  "rm" (value)		/* 'value' can be register or memory */
-		: "%cc"						/* clobbers condition codes */
+		: "cc"						/* clobbers condition codes */
 	);
 
 	return result;
@@ -485,7 +485,7 @@ _count_leading_ones(UINT32 value)
 		"1: xorl  $31, %[result]       ;"
 		: [result] "=r"  (result)	/* result can be in any register */
 		: [value]  "rmi" (value)	/* 'value' can be register, memory or immediate */
-		: "%cc"						/* clobbers condition codes */
+		: "cc"						/* clobbers condition codes */
 	);
 
 	return result;
@@ -516,7 +516,7 @@ _compare_exchange32(INT32 volatile *ptr, INT32 compare, INT32 exchange)
 	  , [result]   "=a" (result)
 	  : [compare]  "1"  (compare)
 	  , [exchange] "q"  (exchange)
-	  : "%cc"
+	  : "cc"
 	);
 
 	return result;
@@ -543,7 +543,7 @@ _compare_exchange64(INT64 volatile *ptr, INT64 compare, INT64 exchange)
 	  , [result]   "=a" (result)
 	  : [compare]  "1"  (compare)
 	  , [exchange] "q"  (exchange)
-	  : "%cc"
+	  : "cc"
 	);
 
 	return result;
@@ -591,7 +591,7 @@ _atomic_add32(INT32 volatile *ptr, INT32 delta)
 	  : [ptr]    "+m" (*ptr)
 	  , [result] "+r" (result)
 	  :
-	  : "%cc"
+	  : "cc"
 	);
 
 	return result + delta;
@@ -615,7 +615,7 @@ _atomic_increment32(INT32 volatile *ptr)
 	  : [ptr]    "+m" (*ptr)
 	  , [result] "+r" (result)
 	  :
-	  : "%cc"
+	  : "cc"
 	);
 
 	return result + 1;
@@ -639,7 +639,7 @@ _atomic_decrement32(INT32 volatile *ptr)
 	  : [ptr]    "+m" (*ptr)
 	  , [result] "+r" (result)
 	  :
-	  : "%cc"
+	  : "cc"
 	);
 
 	return result - 1;

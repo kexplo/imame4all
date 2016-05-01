@@ -1,7 +1,7 @@
 ###########################################################################
 #
 #   makefile
-#f
+#
 #   Core makefile for building MAME and derivatives
 #
 #   Copyright (c) Nicola Salmoria and the MAME Team.
@@ -400,7 +400,7 @@ else
 
 AR = @$(MYPREFIX)ar
 ifdef AARMV7
-CC = @$(MYPREFIX)gcc-4.6
+CC = @$(MYPREFIX)gcc-4.9
 #CC = @$(MYPREFIX)g++
 else
 CC = @$(MYPREFIX)gcc
