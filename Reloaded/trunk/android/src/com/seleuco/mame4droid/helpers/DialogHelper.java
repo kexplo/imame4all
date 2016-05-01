@@ -69,6 +69,7 @@ public class DialogHelper {
 	public final static int DIALOG_ROMs_DIR = 9;
 	public final static int DIALOG_FINISH_CUSTOM_LAYOUT = 10;
 	public final static int DIALOG_EMU_RESTART = 11;
+	public final static int DIALOG_NO_PERMISSIONS = 12;
 	
 	protected MAME4droid mm = null;
 	
@@ -307,7 +308,18 @@ public class DialogHelper {
 	    	           }
 	    	       });
 	    	dialog = builder.create();
-	        break;	         
+	        break;
+        case DIALOG_NO_PERMISSIONS:
+			builder.setTitle("No permissions!")
+				   .setMessage("You don't have permission to read from external storage. Please, allow storage permission on Android applications settings.")
+				   .setCancelable(false)
+					.setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							mm.getMainHelper().restartApp();
+						}
+					});
+			dialog = builder.create();
+			break;
 	    default:
 	        dialog = null;
 	    }
@@ -373,7 +385,11 @@ public class DialogHelper {
 	    else if(id==DIALOG_EMU_RESTART)
 		{
 	    	Emulator.pause();
-		}			
+		}
+		else if(id==DIALOG_NO_PERMISSIONS)
+		{
+			DialogHelper.savedDialog = DIALOG_NO_PERMISSIONS;
+		}
 		
 	}
         
@@ -384,5 +400,11 @@ public class DialogHelper {
 			DialogHelper.savedDialog = DIALOG_NONE;  
 		}
 	}
-	
+
+	public void showMessage(String message, DialogInterface.OnClickListener okListener) {
+		new AlertDialog.Builder(mm).setMessage(message)
+				.setCancelable(false)
+				.setPositiveButton("OK", okListener)
+				.create().show();
+	}
 }

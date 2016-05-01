@@ -44,13 +44,12 @@
 
 package com.seleuco.mame4droid;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
@@ -74,51 +73,23 @@ import com.seleuco.mame4droid.views.IEmuView;
 import com.seleuco.mame4droid.views.InputView;
 import com.kexplo.mame4droid.R;
 
-final class NotificationHelper
-{
-        private static NotificationManager notificationManager = null;
- 
-		public static void addNotification(Context ctx, String onShow, String title, String message)
-        {
-                if(notificationManager == null)
-                        notificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
-                int icon = R.drawable.icon_sb; // TODO: don't hard-code
-                long when = System.currentTimeMillis();
-                Notification notification = new Notification(icon, /*onShow*/null, when);
-                notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_AUTO_CANCEL;
-                CharSequence contentTitle = title;
-                CharSequence contentText = message;
-                Intent notificationIntent = new Intent(ctx, MAME4droid.class);
-                PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
-
-                //notification.setLatestEventInfo(ctx, contentTitle, contentText, contentIntent);
-                notificationManager.notify(1, notification);
-        }
-       
-        public static void removeNotification()
-        {
-                if(notificationManager != null)
-                        notificationManager.cancel(1);
-        }
-}
-
 public class MAME4droid extends Activity {
 
 	protected View emuView = null;
 
 	protected InputView inputView = null;
-		
+
 	protected MainHelper mainHelper = null;
 	protected MenuHelper menuHelper = null;
 	protected PrefsHelper prefsHelper = null;
 	protected DialogHelper dialogHelper = null;
-	
+
 	protected InputHandler inputHandler = null;
-	
+
 	protected FileExplorer fileExplore = null;
-	
+
 	protected NetPlay netPlay = null;
-		
+
 	public NetPlay getNetPlay() {
 		return netPlay;
 	}
@@ -130,72 +101,96 @@ public class MAME4droid extends Activity {
 	public MenuHelper getMenuHelper() {
 		return menuHelper;
 	}
-    	
+
     public PrefsHelper getPrefsHelper() {
 		return prefsHelper;
 	}
-    
+
     public MainHelper getMainHelper() {
 		return mainHelper;
 	}
-    
+
     public DialogHelper getDialogHelper() {
 		return dialogHelper;
 	}
-    
+
 	public View getEmuView() {
 		return emuView;
 	}
-	
+
 	public InputView getInputView() {
 		return inputView;
 	}
-	
+
     public InputHandler getInputHandler() {
 		return inputHandler;
 	}
-    
+
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
 		Log.d("EMULATOR", "onCreate "+this);
 		System.out.println("onCreate intent:"+getIntent().getAction());
-		
+
 		overridePendingTransition(0, 0);
 		getWindow().setWindowAnimations(0);
-		
+
 		prefsHelper = new PrefsHelper(this);
 
         dialogHelper  = new DialogHelper(this);
-        
+
         mainHelper = new MainHelper(this);
-                             
+
         fileExplore = new FileExplorer(this);
-        
+
         netPlay = new NetPlay(this);
-                
+
         menuHelper = new MenuHelper(this);
-                
+
         inputHandler = InputHandlerFactory.createInputHandler(this);
-        
+
         mainHelper.detectDevice();
-        
+
         inflateViews();
-        
-        Emulator.setMAME4droid(this);  
-        
+
+        Emulator.setMAME4droid(this);
+
         mainHelper.updateMAME4droid();
-        
+
         //mainHelper.checkNewViewIntent(this.getIntent());
-               
+		if(Build.VERSION.SDK_INT >= 0x17) {
+			if(checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED) {
+				if(shouldShowRequestPermissionRationale("android.permission.WRITE_EXTERNAL_STORAGE")) {
+					//dialogHelper.showMessage("You need to allow read on external storage so MAME4droid can read ROM files!", getIntent().getAction());
+					dialogHelper.showMessage("You need to allow read on external storage so MAME4droid can read ROM files!", new DialogInterface.OnClickListener() {
+						@TargetApi(Build.VERSION_CODES.M)
+						@Override
+						public void onClick(DialogInterface dialogInterface, int i) {
+							requestPermissions(new String[] {"android.permission.WRITE_EXTERNAL_STORAGE"}, 0x1);
+						}
+					});
+					return;
+				}
+				requestPermissions(new String[] {"android.permission.WRITE_EXTERNAL_STORAGE"}, 0x1);
+				return;
+			}
+			initMame4droid();
+			return;
+		}
+		initMame4droid();
+    }
+
+	protected void initMame4droid() {
         if(!Emulator.isEmulating())
         {
 			if(prefsHelper.getROMsDIR()==null)
-			{	            
+			{
 				if(DialogHelper.savedDialog==DialogHelper.DIALOG_NONE)
-				   showDialog(DialogHelper.DIALOG_ROMs_DIR);                      
+				{
+				   showDialog(DialogHelper.DIALOG_ROMs_DIR);
+				}
 			}
 			else
 			{
@@ -210,28 +205,28 @@ public class MAME4droid extends Activity {
 				}
 			}
         }
-    }
-    
+	}
+
     public void inflateViews(){
     	inputHandler.unsetInputListeners();
-    	
+
         Emulator.setPortraitFull(getPrefsHelper().isPortraitFullscreen());
-        
+
         boolean full = false;
 		if(prefsHelper.isPortraitFullscreen() && mainHelper.getscrOrientation() == Configuration.ORIENTATION_PORTRAIT)
 		{
 			setContentView(R.layout.main_fullscreen);
 			full = true;
 		}
-		else 
+		else
 		{
             setContentView(R.layout.main);
-		}        
-                
+		}
+
         FrameLayout fl = (FrameLayout)this.findViewById(R.id.EmulatorFrame);
-                
+
         Emulator.setVideoRenderMode(getPrefsHelper().getVideoRenderMode());
-        
+
         if(prefsHelper.getVideoRenderMode()==PrefsHelper.PREF_RENDER_SW)
         {
         	/*
@@ -240,79 +235,79 @@ public class MAME4droid extends Activity {
         		EmulatorViewSW s = (EmulatorViewSW)emuView;
         		s.getHolder().removeCallback(s);
         	}*/
-        		
+
         	this.getLayoutInflater().inflate(R.layout.emuview_sw, fl);
-        	emuView = this.findViewById(R.id.EmulatorViewSW);        
+        	emuView = this.findViewById(R.id.EmulatorViewSW);
         }
-        else 
-        { 
+        else
+        {
         	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && prefsHelper.getNavBarMode()!=PrefsHelper.PREF_NAVBAR_VISIBLE)
         	    this.getLayoutInflater().inflate(R.layout.emuview_gl_ext, fl);
         	else
         		this.getLayoutInflater().inflate(R.layout.emuview_gl, fl);
-    		
-        	emuView = this.findViewById(R.id.EmulatorViewGL);        	
+
+        	emuView = this.findViewById(R.id.EmulatorViewGL);
         }
-        
+
         if(full && prefsHelper.isPortraitTouchController())
         {
         	FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams )emuView.getLayoutParams();
         	lp.gravity =  Gravity.TOP | Gravity.CENTER;
         }
-                       
+
         inputView = (InputView) this.findViewById(R.id.InputView);
-                
+
         ((IEmuView)emuView).setMAME4droid(this);
 
         inputView.setMAME4droid(this);
-                          
+
         View frame = this.findViewById(R.id.EmulatorFrame);
-	    frame.setOnTouchListener(inputHandler);    
-	   
-                
-        inputHandler.setInputListeners();   	
+	    frame.setOnTouchListener(inputHandler);
+
+
+        inputHandler.setInputListeners();
     }
-        
-    public void runMAME4droid(){  	
-    	    	
+
+    public void runMAME4droid(){
+
 	    getMainHelper().copyFiles();
 	    getMainHelper().removeFiles();
-	    	    
-    	Emulator.emulate(mainHelper.getLibDir(),mainHelper.getInstallationDIR());    	
+
+    	Emulator.emulate(mainHelper.getLibDir(),mainHelper.getInstallationDIR());
     }
-     
+
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-				
+
 		overridePendingTransition(0, 0);
-		
+
 		inflateViews();
 
 		getMainHelper().updateMAME4droid();
-		
+
 		overridePendingTransition(0, 0);
 	}
 
 	//MENU STUFF
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {		
-		
+	public boolean onCreateOptionsMenu(Menu menu) {
+
 		if(menuHelper!=null)
 		{
 		   if(menuHelper.createOptionsMenu(menu))return true;
-		}  
-		
+		}
+
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		if(menuHelper!=null)
-		{	
+		{
 		   if(menuHelper.prepareOptionsMenu(menu)) return true;
-		}   
-		return super.onPrepareOptionsMenu(menu); 
+		}
+		return super.onPrepareOptionsMenu(menu);
 	}
 
 	@Override
@@ -332,62 +327,62 @@ public class MAME4droid extends Activity {
 		if(mainHelper!=null)
 		   mainHelper.activityResult(requestCode, resultCode, data);
 	}
-	
+
 	//LIVE CYCLE
 	@Override
 	protected void onResume() {
-		Log.d("EMULATOR", "onResume "+this);				
+		Log.d("EMULATOR", "onResume "+this);
 		super.onResume();
-				
+
 		if(prefsHelper!=null)
 		   prefsHelper.resume();
-				
+
 		if(DialogHelper.savedDialog!=-1)
 			showDialog(DialogHelper.savedDialog);
 		else if(!ControlCustomizer.isEnabled())
 		  Emulator.resume();
-		
+
 		if(inputHandler!= null)
 		{
 			if(inputHandler.getTiltSensor()!=null)
 			   inputHandler.getTiltSensor().enable();
 			inputHandler.resume();
 		}
-		
+
 		NotificationHelper.removeNotification();
 		//System.out.println("OnResume");		 
 	}
-	
+
 	@Override
 	protected void onPause() {
 		Log.d("EMULATOR", "onPause "+this);
 		super.onPause();
 		if(prefsHelper!=null)
 		   prefsHelper.pause();
-		if(!ControlCustomizer.isEnabled())		
+		if(!ControlCustomizer.isEnabled())
 		   Emulator.pause();
 		if(inputHandler!= null)
 		{
 			if(inputHandler.getTiltSensor()!=null)
 			   inputHandler.getTiltSensor().disable();
-		}	
-		
+		}
+
 		if(dialogHelper!=null)
 		{
 			dialogHelper.removeDialogs();
 		}
-		
-		if(prefsHelper.isNotifyWhenSuspend()) 
+
+		if(prefsHelper.isNotifyWhenSuspend())
 		  NotificationHelper.addNotification(getApplicationContext(), "MAME4droid was suspended!", "MAME4droid was suspended", "Press to return to MAME4droid");
-		
+
 		//System.out.println("OnPause");
 	}
-	
+
 	@Override
 	protected void onStart() {
-		Log.d("EMULATOR", "onStart "+this);		
+		Log.d("EMULATOR", "onStart "+this);
 		super.onStart();
-		try{InputHandlerExt.resetAutodetected();}catch(Error e){};		
+		try{InputHandlerExt.resetAutodetected();}catch(Error e){};
 		//System.out.println("OnStart");
 	}
 
@@ -397,7 +392,7 @@ public class MAME4droid extends Activity {
 		super.onStop();
 		//System.out.println("OnStop");
 	}
-	
+
 	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
@@ -410,19 +405,19 @@ public class MAME4droid extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.d("EMULATOR", "onDestroy "+this);
-				
+
         View frame = this.findViewById(R.id.EmulatorFrame);
 	    if(frame!=null)
-           frame.setOnTouchListener(null); 
-	    
+           frame.setOnTouchListener(null);
+
 		if(inputHandler!= null)
 		{
 		   inputHandler.unsetInputListeners();
-		   
+
 			if(inputHandler.getTiltSensor()!=null)
 				   inputHandler.getTiltSensor().disable();
 		}
-			
+
         if(emuView!=null)
 		   ((IEmuView)emuView).setMAME4droid(null);
 
@@ -449,28 +444,28 @@ public class MAME4droid extends Activity {
         
         emuView = null;
         
-        filterView = null; */     	    
-	}	
-		
+        filterView = null; */
+	}
+
 
 	//Dialog Stuff
 	@Override
 	protected Dialog onCreateDialog(int id) {
 
 		if(dialogHelper!=null)
-		{	
+		{
 			Dialog d = dialogHelper.createDialog(id);
 			if(d!=null)return d;
 		}
-		return super.onCreateDialog(id);		
+		return super.onCreateDialog(id);
 	}
 
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
 		if(dialogHelper!=null)
 		   dialogHelper.prepareDialog(id, dialog);
-	} 
-	
+	}
+
 	@Override
 	public boolean dispatchGenericMotionEvent(MotionEvent event)
 	{
@@ -478,5 +473,22 @@ public class MAME4droid extends Activity {
 		   return inputHandler.genericMotion(event);
 		return false;
 	}
-	        
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		switch(requestCode) {
+			case 1:
+			{
+				if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					initMame4droid();
+					return;
+				}
+				showDialog(DialogHelper.DIALOG_NO_PERMISSIONS);
+				return;
+			}
+		}
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+	}
 }
