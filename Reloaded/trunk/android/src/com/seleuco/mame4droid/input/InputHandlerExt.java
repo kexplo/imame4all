@@ -837,6 +837,22 @@ public class InputHandlerExt extends InputHandler implements OnGenericMotionList
 			
 			detected = true;			
 		}
+		else if (name.indexOf("小米蓝牙手柄") != -1) {
+			mapDPAD(id);
+
+			deviceMappings[KeyEvent.KEYCODE_BUTTON_A][id] = B_VALUE;
+			deviceMappings[KeyEvent.KEYCODE_BUTTON_B][id] = A_VALUE;
+			deviceMappings[KeyEvent.KEYCODE_BUTTON_X][id] = C_VALUE;
+			deviceMappings[KeyEvent.KEYCODE_BUTTON_Y][id] = D_VALUE;
+
+			mapL1R1(id);mapTHUMBS(id);mapSelectStart(id);
+
+			deviceMappings[KeyEvent.KEYCODE_BACK][id] = EXIT_VALUE;
+
+			desc = "Xiaomi Gamepad";
+
+			detected = true;
+		}
 		else if (name.indexOf("Logitech")!=-1 && name.indexOf("Dual Action")!=-1){
 		
 			deviceMappings[KeyEvent.KEYCODE_BUTTON_A][id] = C_VALUE;
